@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+	h3{
+		    color: white;
+		  font-size: 150%;
+	position: absolute;
+    left: 48%;
+    top: 85%;
+	}
+canvas{
+    background-image: url("img/space.gif");
+    height: 70%;
+    width: 65%;
+    background-size: cover;
+    position: absolute;
+    float: left;
+    left: 15%;
+    top: 8%;
+}
+button{
+	width: 10%;
+	height: 4%;
+	position: absolute;
+    left: 45%;
+    top: 40%;
+    background-image: url("img/space.gif");
+    color: white;
+   
+     
+}
+
+
+
+}
+</style>
+		<title>Shooter JS Game</title>
+	</head>
+<body onkeyup="ga(event)"  style="background-image: url('img/background.png');background-size: cover;">
+
+		<canvas id="mainCanvas" style="background-color: lightgrey"></canvas>
+		<button id="play" onClick="game()">Appuyer sur entrée</button>
+		<h3 id="scoreText"></h3>
+		
+		
+		<script type="text/javascript">
+			var n1=0;
+		function ga(event){
+	if (event.keyCode==13 && n1==0){game();n1=2}
+if (event.keyCode==13 && n1==1) {javascript:window.location.reload();}}	
+//Enemy constructor
+function enemy(x,y,color,w,h){
+	this.image = new Image();
+    this.image.src = color;
+	this.x = x;
+	this.y = y;
+	this.w = w;
+	this.h = h;
+	this.speed = 50;
+	this.show = function(){ctx.drawImage(this.image, 
+                this.x, 
+                this.y,
+                this.w, this.h);
+	}
+	this.move = function(speed){
+		this.clear();
+		this.y += speed;
+
+		this.show();	
+	}
+	this.clear = function(){
+		ctx.clearRect(this.x,this.y,this.w,this.h);
+	}
+}
+//Bullet constructor
+function bullet(x,y,color,w,h){
+	this.image = new Image();
+    this.image.src = color;
+	this.x = x;
+	this.y = y;
+	this.w = w;
+	this.h = h;
+	this.show = function(){ctx.drawImage(this.image, 
+                this.x, 
+                this.y,
+                this.w, this.h);
+	}
+
+	this.move = function(){
+		this.clear();
+		this.y -= 5;
+		this.show();
+	}
+	this.clear = function(){
+		ctx.clearRect(this.x,this.y,this.w,this.h);
+	}
+
+	this.hits = function(bullet, enemy){
+		if(bullet.y < enemy.y + enemy.h +10 && bullet.x < enemy.x + enemy.w && bullet.x > enemy.x - 5){
+			return(true);
+		}
+	}
+
+}
+//Player constructure
+function player(x,y,color,w,h){
+	this.image = new Image();
+        this.image.src = color;
+	this.x = x;
+	this.y = y;
+	this.w = w;
+	this.h = h;
+
+	this.show = function(){
+		ctx.drawImage(this.image, 
+                this.x, 
+                this.y,
+                this.w, this.h);
+		if(this.x <= 0) this.x = 0;
+		if(this.x >= canvas.width - this.w) this.x = canvas.width - this.w;
+	}
+
+	this.move = function(dir){
+		this.clear();
+		this.x += dir;
+		this.show();
+	}
+
+	this.clear = function(){
+		ctx.clearRect(this.x,this.y,this.w,this.h);
+
+	}
+}
+var myMusic;var tir;var explosion;
+var canvas = document.getElementById("mainCanvas");
+var ctx = canvas.getContext("2d");
+function game(){
+	tir=new sound("media/tir.mp3");
+	explosion=new sound("media/explosion.mp3")
+    myMusic = new sound("media/background.mp3");
+	myMusic.play();
+document.getElementById("play").style.visibility= "hidden";
+var playerOne = new player(canvas.width/2,canvas.height-20,"img/hero.8.png",20,20);
+var bullets = [];
+var enemies = [];
+var enemySpeed = 1;
+var spa = 0;
+var score = 0;
+var level = 0;
+//Draws enemies
+function drawEnemies(yPos){
+for(var i = 0; i < 7; i++){
+	var enemyOne = new enemy(i*40,-20+yPos,"img/alien2.png",20,20);
+	enemies.push(enemyOne);
+	enemies[i].show();
+}
+}
+
+//Main game loop
+function update(){
+	playerOne.show();
+	document.getElementById("scoreText").innerHTML = "Votre score : "+score;
+
+	//Shoot the bullets and checks if they hit an enemy
+	for(var i = 0; i < bullets.length; i++){
+		bullets[i].move();
+		for(var j = 0; j < enemies.length; j++){
+			if(bullets[i].hits(bullets[i],enemies[j])){
+				explosion.play();
+			enemies[j].clear();
+			bullets[i].clear();
+			enemies.splice(j,1);
+			score += 100;
+			level++;	
+		}
+	}
+	if(bullets[i].y <= 0 ){ 
+		bullets[i].clear();
+		bullets.splice(i,1);
+	}
+	}
+	if(enemies.length <= 0){
+		drawEnemies(20);
+		enemySpeed += 1;
+	}
+	
+	window.requestAnimationFrame(update);
+}
+var enemyMove = setInterval(function(){
+	for(var i = 0; i < enemies.length; i++){
+	 	enemies[i].move(enemySpeed);
+	 	//if (enemies[i].y<20) {enemies[i].x+=1;}
+	 	if (0<=enemies[i].y &&  20>=enemies[i].y) {enemies[i].x+=1;}
+	 	if (21<=enemies[i].y &&  40>=enemies[i].y) {enemies[i].x+=-1;}
+	 	if (41<=enemies[i].y &&  70>=enemies[i].y) {enemies[i].x+=1;}
+	 	if (71<=enemies[i].y &&  90>=enemies[i].y) {enemies[i].x+=-1;}
+	 	if (91<=enemies[i].y &&  120>=enemies[i].y) {enemies[i].x+=1;}
+	 	
+	 	
+	 	
+	 	if(enemies[i].y > 130){
+	 		lost();
+	 		clearInterval(enemyMove);
+	 	}
+	}
+},200);
+
+function lost(){
+	myMusic.stop();
+
+	setInterval(function(){
+	 ctx.fillStyle = "red";
+	 ctx.font = "35px Arial";
+	 ctx.fillText("GAME OVER",20,80);
+	 ctx.fillStyle = "white";
+	 ctx.font = "15px Arial";
+	 ctx.fillText("Le score  atteint est: " + score,30,40);
+	 ctx.font = "15px Arial";
+	 ctx.fillText("Vous avez tuer: " + level + " aliens",30,120);
+	
+
+
+
+	},50);
+	ctx.clearRect(0,0,canvas.width,canvas.height);
+ enemies.clear;
+	n1=1;
+
+
+}
+function sound(src) {
+    this.sound = document.createElement("audio");
+    this.sound.src = src;
+    this.sound.setAttribute("preload", "auto");
+    this.sound.setAttribute("controls", "none");
+    this.sound.style.display = "none";
+    document.body.appendChild(this.sound);
+    this.play = function(){
+    this.sound.play();
+    }
+    this.stop = function(){
+        this.sound.pause();
+    }    
+}
+
+//Key Press functions
+window.addEventListener("keydown",function(event){
+	if(event.keyCode == 37) {
+		playerOne.move(-10);
+	}
+	if(event.keyCode == 39) {
+		playerOne.move(10);
+	}
+	if(event.keyCode == 32){
+		var bulletOne = new bullet(playerOne.x + 7, playerOne.y, "img/balle2.png",10, 10);
+		bullets.push(bulletOne);
+		tir.play();
+	}
+});
+
+update();
+
+}
+
+</script>
+
+	
+		
+	</body>
+	</html>
+
+
